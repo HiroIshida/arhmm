@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from arhmm.dataset import generate_2d_randomwalk
 from arhmm.propagator import Propagator
-from arhmm.core import ModelParameter
+from arhmm.core import ModelParameter, beta_forward
 from arhmm.core import HiddenStates
 from arhmm.core import alpha_forward
 
@@ -21,3 +21,4 @@ def test_alpha_beta(data_2d_randomwalk):
     mp_real = ModelParameter(A_init, props=[prop1, prop2])
     mp = ModelParameter(A=np.array([[0.99, 0.0], [0.01, 1.0]]), props=[prop1, prop2])
     alpha_forward(hs, mp, xs_stack[0])
+    beta_forward(hs, mp, xs_stack[0])

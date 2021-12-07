@@ -57,3 +57,16 @@ def alpha_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
 
         hs.c_seq[t+1] = sum(hs.alphas[t])
         hs.alphas[t] /= hs.c_seq[t+1]
+
+def beta_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
+    n_seq, n_dim = xs.shape
+    hs.betas[n_seq - 2] = np.ones(mp.n_phase)
+    for t in range(n_seq-3, 0, -1):
+        x_tp1 = xs[t+1]
+        x_tp2 = xs[t+2]
+        for j in range(mp.n_phase): # phase at t
+            sum = 0.0
+            for i in range(mp.n_phase): # phase at t+1
+                sum +=mp._A[i, j] * mp._props[i].transition_prob(x_tp1, x_tp2) * hs.betas[t+1][i]
+            hs.betas[t][j] = sum
+            hs.betas[t][j] /= hs.c_seq[t+2]
