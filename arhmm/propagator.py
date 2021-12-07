@@ -21,7 +21,7 @@ class Propagator:
 
     def transition_prob(self, x: np.ndarray, x_next: np.ndarray) -> float:
         mean = self._phi.dot(x) + self._drift
-        prob = scipy.stats.multivariate_normal.pdf(x, mean, self._cov)
+        prob = scipy.stats.multivariate_normal.pdf(x_next, mean, self._cov)
         return prob
 
     @classmethod
