@@ -28,4 +28,4 @@ def generate_2d_randomwalk(N=50):
         xs, zs = generate_swtiching_linear_seq(100, mp_real)
         xs_stack.append(xs)
         zs_stack.append(zs)
-    return xs_stack, zs_stack
+    return xs_stack, zs_stack, mp_real

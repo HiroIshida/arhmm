@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 import numpy as np
+import math
 
 from arhmm.propagator import Propagator
 
@@ -37,6 +38,25 @@ class HiddenStates:
 
     @property
     def n_phase(self): return len(self.z_ests[0])
+
+def expectation_step(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
+    alpha_forward(hs, mp, xs)
+    beta_forward(hs, mp, xs)
+
+    for t in range(len(xs)-1):
+        hs.z_ests[t] = hs.alphas[t] * hs.betas[t]
+
+    for t in range(len(xs)-2):
+        for i in range(mp.n_phase):
+            for j in range(mp.n_phase):
+                x_t, x_tt = xs[t+1], xs[t+1]
+                prob_trans = mp._props[j].transition_prob(x_t, x_tt)
+                tmp = hs.alphas[t][i] * mp._A[j, i] * prob_trans * hs.betas[t+1][j]
+                hs.zz_ests[t][i, j] = tmp/hs.c_seq[t+2]
+
+    # compute log_likelihood
+    log_likeli = sum(math.log(c) for c in hs.c_seq)
+    return log_likeli
 
 def alpha_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
     hs.c_seq[0] = 1.0
