@@ -16,11 +16,11 @@ def generate_swtiching_linear_seq(n_time, mp: ModelParameter):
         zs.append(z)
     return np.array(xs), np.array(zs)
 
-def generate_2d_randomwalk(N=50):
+def generate_distinct_randomwalks(N=30):
     noise_std = 1e-1
     prop1 = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.4]))
     prop2 = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.4]))
-    A_init = np.array([[0.95, 0.0], [0.05, 1.0]])
+    A_init = np.array([[0.85, 0.15], [0.15, 0.85]])
     mp_real = ModelParameter(A_init, props=[prop1, prop2])
     xs_stack = []
     zs_stack = []

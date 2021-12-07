@@ -1,26 +1,31 @@
 import pytest
 import numpy as np
-np.random.seed(seed=0)
+#np.random.seed(seed=0)
 
-from arhmm.dataset import generate_2d_randomwalk
+from arhmm.dataset import generate_distinct_randomwalks
 from arhmm.propagator import Propagator
 from arhmm.core import ModelParameter, beta_forward
 from arhmm.core import HiddenStates
 from arhmm.core import alpha_forward
 from arhmm.core import expectation_step
 
+np.random.seed(0)
+
 @pytest.fixture(scope='session')
-def data_2d_randomwalk(): return generate_2d_randomwalk()
+def data_2d_randomwalk(): return generate_distinct_randomwalks()
 
 def test_expectation_step(data_2d_randomwalk):
     # Because we use real model parameter, only expectation step can predict
     # hidden state with a certain accuracy
     xs_stack, zs_stack, mp_real = data_2d_randomwalk
-    hs = HiddenStates.construct(2, len(xs_stack[0]))
-    expectation_step(hs, mp_real, xs_stack[0])
-    print([np.argmax(z) for z in hs.z_ests])
-    print(zs_stack[0])
-    assert False
+
+    for i in range(len(xs_stack)):
+        xs, zs = xs_stack[i], zs_stack[i]
+        hs = HiddenStates.construct(2, len(xs))
+        expectation_step(hs, mp_real, xs)
+        pred_phases = np.array([np.argmax(z) for z in hs.z_ests])
+        error = sum(np.abs(pred_phases - zs[:-1]))/len(pred_phases)
+        assert error < 0.1
 
     """
     noise_std = 1.2e-1
