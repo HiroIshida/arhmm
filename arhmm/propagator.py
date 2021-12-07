@@ -1,6 +1,7 @@
 from typing import List
 import numpy as np
 from numpy.core.numeric import outer
+import scipy.stats
 
 class Propagator:
     _dim: int
@@ -17,6 +18,11 @@ class Propagator:
         mean = self._phi.dot(x) + self._drift
         x = np.random.multivariate_normal(mean, self._cov)
         return x
+
+    def transition_prob(self, x: np.ndarray, x_next: np.ndarray) -> float:
+        mean = self._phi.dot(x) + self._drift
+        prob = scipy.stats.multivariate_normal.pdf(x, mean, self._cov)
+        return prob
 
     @classmethod
     def fit_parameter(cls, xs_list: List[np.ndarray], ws_list: List[np.ndarray]):
