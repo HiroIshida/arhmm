@@ -81,7 +81,7 @@ def alpha_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
 def beta_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
     n_seq, n_dim = xs.shape
     hs.betas[n_seq - 2] = np.ones(mp.n_phase)
-    for t in range(n_seq-3, 0, -1):
+    for t in range(n_seq-3, -1, -1):
         x_tp1 = xs[t+1]
         x_tp2 = xs[t+2]
         for j in range(mp.n_phase): # phase at t
