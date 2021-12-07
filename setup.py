@@ -5,6 +5,7 @@ setup_requires = []
 
 install_requires = [
         "numpy",
+        "scipy"
         ]
 
 setup(
