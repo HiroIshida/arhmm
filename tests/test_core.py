@@ -8,6 +8,7 @@ from arhmm.core import ModelParameter, beta_forward
 from arhmm.core import HiddenStates
 from arhmm.core import alpha_forward
 from arhmm.core import expectation_step
+from arhmm.core import maximization_step
 
 np.random.seed(0)
 
@@ -37,3 +38,11 @@ def test_expectation_step(data_2d_randomwalk):
     mp = ModelParameter(A=np.array([[0.99, 0.0], [0.01, 1.0]]), props=[prop1, prop2])
     """
 
+def test_em_algorithm(data_2d_randomwalk):
+    xs_stack, zs_stack, mp_real = data_2d_randomwalk
+
+    hs_list = [HiddenStates.construct(2, len(xs)) for xs in xs_stack]
+    for i in range(1):
+        for hs, xs in zip(hs_list, xs_stack):
+            expectation_step(hs, mp_real, xs)
+        maximization_step(hs_list, mp_real, xs_stack)

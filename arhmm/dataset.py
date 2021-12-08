@@ -16,7 +16,7 @@ def generate_swtiching_linear_seq(n_time, mp: ModelParameter):
         zs.append(z)
     return np.array(xs), np.array(zs)
 
-def generate_distinct_randomwalks(N=30):
+def generate_distinct_randomwalks(N=10):
     noise_std = 1e-1
     prop1 = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.4]))
     prop2 = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.4]))

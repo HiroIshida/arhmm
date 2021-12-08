@@ -90,3 +90,28 @@ def beta_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
                 sum +=mp._A[i, j] * mp._props[i].transition_prob(x_tp1, x_tp2) * hs.betas[t+1][i]
             hs.betas[t][j] = sum
             hs.betas[t][j] /= hs.c_seq[t+2]
+
+def maximization_step(hs_list: List[HiddenStates], mp: ModelParameter, xs_list: List[np.ndarray]):
+    assert len(hs_list) == len(xs_list)
+
+    # update pmf_z1
+    mp._pmf_z1 = sum(hs.z_ests[0] for hs in hs_list) / len(hs_list)
+
+    # update A
+    A_new = np.zeros((mp.n_phase, mp.n_phase))
+    for hs in hs_list:
+        n_seq = len(hs.z_ests) + 1
+        for t in range(n_seq - 2):
+            for i in range(mp.n_phase):
+                for j in range(mp.n_phase):
+                    # Note that our stochastic matrix is different (transposed) from
+                    # the one in PRML
+                    A_new[j, i] += hs.zz_ests[t][i, j]
+    for j in range(mp.n_phase): # normalize
+        A_new[:, j] /= sum(A_new[:, j])
+    mp.A = A_new
+
+    # update prop list
+    for i in range(mp.n_phase):
+        ws_list = [np.array([z_est[i] for z_est in hs.z_ests]) for hs in hs_list]
+        mp._props[i] = Propagator.fit_parameter(xs_list, ws_list)
