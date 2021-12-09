@@ -28,10 +28,10 @@ def generate_distinct_randomwalks(N=10):
     A_init_est = np.array([[0.9, 0.1], [0.1, 0.9]])
     mp_est = ModelParameter(A_init_est, props=[prop1_est, prop2_est])
 
-    xs_stack = []
-    zs_stack = []
+    xs_list = []
+    zs_list = []
     for i in range(N):
         xs, zs = generate_swtiching_linear_seq(100, mp_real)
-        xs_stack.append(xs)
-        zs_stack.append(zs)
-    return xs_stack, zs_stack, mp_real, mp_est
+        xs_list.append(xs)
+        zs_list.append(zs)
+    return xs_list, zs_list, mp_real, mp_est

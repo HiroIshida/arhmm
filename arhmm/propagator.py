@@ -27,7 +27,7 @@ class Propagator:
     @classmethod
     def fit_parameter(cls, xs_list: List[np.ndarray], ws_list: List[np.ndarray]):
         """
-        ws_stack: weigt of regression. In this context, ws_stack is phase probability
+        ws_list: weigt of regression. In this context, ws_list is phase probability
         """
         assert len(xs_list) == len(ws_list)
         n_dim = xs_list[0].shape[1]

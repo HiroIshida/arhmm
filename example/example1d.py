@@ -21,12 +21,12 @@ if __name__=='__main__':
     A_init = np.array([[0.85, 0.15], [0.15, 0.85]])
     mp_real = ModelParameter(A_init, props=[prop1, prop2])
 
-    xs_stack = []
-    zs_stack = []
+    xs_list = []
+    zs_list = []
     for i in range(10):
         xs, zs = generate_swtiching_linear_seq(100, mp_real)
-        xs_stack.append(xs)
-        zs_stack.append(zs)
+        xs_list.append(xs)
+        zs_list.append(zs)
 
     # prepare initial estimate of model parameter
     prop1_est = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.3]))
@@ -35,17 +35,17 @@ if __name__=='__main__':
     mp_est = ModelParameter(A_init_est, props=[prop1_est, prop2_est])
 
     # run algorithm
-    hs_list = [HiddenStates.construct(2, len(xs)) for xs in xs_stack]
+    hs_list = [HiddenStates.construct(2, len(xs)) for xs in xs_list]
     loglikeli_seq = []
     for i in range(3):
-        loglikeli = expectation_step(hs_list, mp_est, xs_stack)
-        maximization_step(hs_list, mp_est, xs_stack)
+        loglikeli = expectation_step(hs_list, mp_est, xs_list)
+        maximization_step(hs_list, mp_est, xs_list)
         loglikeli_seq.append(loglikeli)
 
     if visualize:
         import matplotlib.pyplot as plt
         index = 0
-        hs, xs = hs_list[index], xs_stack[index][:-1]
+        hs, xs = hs_list[index], xs_list[index][:-1]
         horizons = np.arange(len(hs.z_ests))
         phases = np.array([np.argmax(z_est) for z_est in hs.z_ests])
         fig, ax = plt.subplots()
