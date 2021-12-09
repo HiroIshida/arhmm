@@ -6,18 +6,18 @@ import math
 from arhmm.propagator import Propagator
 
 class ModelParameter:
-    _A: np.ndarray
-    _props: List[Propagator]
-    _pmf_z1: np.ndarray
+    A: np.ndarray
+    props: List[Propagator]
+    pmf_z1: np.ndarray
     def __init__(self, A: np.ndarray, props: List[Propagator]):
         n_phase = A.shape[0]
         pmf_z1 = np.zeros(n_phase); pmf_z1[0] = 1.0 # because initial phase must be phase 1
-        self._A = A
-        self._props = props
-        self._pmf_z1 = pmf_z1
+        self.A = A
+        self.props = props
+        self.pmf_z1 = pmf_z1
 
     @property
-    def n_phase(self): return self._A.shape[0]
+    def n_phase(self): return self.A.shape[0]
 
 @dataclass
 class HiddenStates:
@@ -57,8 +57,8 @@ def _expectation_step(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray) -> f
         for i in range(mp.n_phase):
             for j in range(mp.n_phase):
                 x_t, x_tt = xs[t+1], xs[t+1]
-                prob_trans = mp._props[j].transition_prob(x_t, x_tt)
-                tmp = hs.alphas[t][i] * mp._A[j, i] * prob_trans * hs.betas[t+1][j]
+                prob_trans = mp.props[j].transition_prob(x_t, x_tt)
+                tmp = hs.alphas[t][i] * mp.A[j, i] * prob_trans * hs.betas[t+1][j]
                 hs.zz_ests[t][i, j] = tmp/hs.c_seq[t+2]
 
     # compute log_likelihood
@@ -69,9 +69,9 @@ def alpha_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
     hs.c_seq[0] = 1.0
     x1, x2 = xs[0], xs[1]
     px1 = 1.0 # deterministic x 
-    trans_probs = lambda x, x_next: np.array([prop.transition_prob(x, x_next) for prop in mp._props])
+    trans_probs = lambda x, x_next: np.array([prop.transition_prob(x, x_next) for prop in mp.props])
 
-    tmp = trans_probs(x1, x2) * mp._pmf_z1 * px1
+    tmp = trans_probs(x1, x2) * mp.pmf_z1 * px1
     hs.c_seq[1] = sum(tmp)
     hs.alphas[0] = tmp/hs.c_seq[1]
 
@@ -79,8 +79,8 @@ def alpha_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
     for t in range(1, n_time-1):
         x_t, x_tp1 = xs[t], xs[t+1]
         for i in range(mp.n_phase):
-            integral_term = sum(mp._A[i, j] * hs.alphas[t-1][j] for j in range(mp.n_phase))
-            hs.alphas[t][i] = mp._props[i].transition_prob(x_t, x_tp1) * integral_term
+            integral_term = sum(mp.A[i, j] * hs.alphas[t-1][j] for j in range(mp.n_phase))
+            hs.alphas[t][i] = mp.props[i].transition_prob(x_t, x_tp1) * integral_term
 
         hs.c_seq[t+1] = sum(hs.alphas[t])
         hs.alphas[t] /= hs.c_seq[t+1]
@@ -94,7 +94,7 @@ def beta_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
         for j in range(mp.n_phase): # phase at t
             sum = 0.0
             for i in range(mp.n_phase): # phase at t+1
-                sum +=mp._A[i, j] * mp._props[i].transition_prob(x_tp1, x_tp2) * hs.betas[t+1][i]
+                sum +=mp.A[i, j] * mp.props[i].transition_prob(x_tp1, x_tp2) * hs.betas[t+1][i]
             hs.betas[t][j] = sum
             hs.betas[t][j] /= hs.c_seq[t+2]
 
@@ -102,7 +102,7 @@ def maximization_step(hs_list: List[HiddenStates], mp: ModelParameter, xs_list: 
     assert len(hs_list) == len(xs_list)
 
     # update pmf_z1
-    mp._pmf_z1 = sum(hs.z_ests[0] for hs in hs_list) / len(hs_list)
+    mp.pmf_z1 = sum(hs.z_ests[0] for hs in hs_list) / len(hs_list)
 
     # update A
     A_new = np.zeros((mp.n_phase, mp.n_phase))
@@ -121,4 +121,4 @@ def maximization_step(hs_list: List[HiddenStates], mp: ModelParameter, xs_list: 
     # update prop list
     for i in range(mp.n_phase):
         ws_list = [np.array([z_est[i] for z_est in hs.z_ests]) for hs in hs_list]
-        mp._props[i] = Propagator.fit_parameter(xs_list, ws_list)
+        mp.props[i] = Propagator.fit_parameter(xs_list, ws_list)

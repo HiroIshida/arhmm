@@ -9,8 +9,8 @@ def generate_swtiching_linear_seq(n_time, mp: ModelParameter):
     xs = [x]
     zs = [z]
     for i in range(n_time):
-        x_next = mp._props[z](x)
-        z_next = np.random.choice(2, 1, replace=False, p=mp._A[:, z])[0]
+        x_next = mp.props[z](x)
+        z_next = np.random.choice(2, 1, replace=False, p=mp.A[:, z])[0]
         x, z = x_next, z_next
         xs.append(x)
         zs.append(z)
