@@ -19,7 +19,7 @@ def data_2d_randomwalk(): return generate_distinct_randomwalks()
 def test_expectation_step(data_2d_randomwalk):
     # Because we use real model parameter, only expectation step can predict
     # hidden state with a certain accuracy
-    xs_stack, zs_stack, mp_real = data_2d_randomwalk
+    xs_stack, zs_stack, mp_real, _ = data_2d_randomwalk
 
     for i in range(len(xs_stack)):
         xs, zs = xs_stack[i], zs_stack[i]
@@ -29,20 +29,14 @@ def test_expectation_step(data_2d_randomwalk):
         error = sum(np.abs(pred_phases - zs[:-1]))/len(pred_phases)
         assert error < 0.1
 
-    """
-    noise_std = 1.2e-1
-    prop1 = Propagator(np.ones((1, 1)), 1.2 * np.ones((1, 1)) * noise_std**2, np.array([0.1]))
-    prop2 = Propagator(np.ones((1, 1)), 2.0 * np.ones((1, 1)) * noise_std**2, np.array([-0.6]))
-    A_init = np.array([[0.99, 0.0], [0.01, 1.0]])
-
-    mp_real = ModelParameter(A_init, props=[prop1, prop2])
-    mp = ModelParameter(A=np.array([[0.99, 0.0], [0.01, 1.0]]), props=[prop1, prop2])
-    """
-
 def test_em_algorithm(data_2d_randomwalk):
-    xs_stack, zs_stack, mp_real = data_2d_randomwalk
+    xs_stack, zs_stack, mp_real, mp_est = data_2d_randomwalk
 
     hs_list = [HiddenStates.construct(2, len(xs)) for xs in xs_stack]
-    for i in range(2):
-        expectation_step(hs_list, mp_real, xs_stack)
-        maximization_step(hs_list, mp_real, xs_stack)
+    loglikeli_seq = []
+    for i in range(3):
+        loglikeli = expectation_step(hs_list, mp_est, xs_stack)
+        maximization_step(hs_list, mp_est, xs_stack)
+        loglikeli_seq.append(loglikeli)
+    is_loglikeli_ascending = sorted(loglikeli_seq) == loglikeli_seq
+    assert is_loglikeli_ascending

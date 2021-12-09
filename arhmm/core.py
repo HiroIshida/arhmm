@@ -39,11 +39,14 @@ class HiddenStates:
     @property
     def n_phase(self): return len(self.z_ests[0])
 
-def expectation_step(hs_list: List[HiddenStates], mp: ModelParameter, xs_list: List[np.ndarray]):
+def expectation_step(hs_list: List[HiddenStates], mp: ModelParameter, xs_list: List[np.ndarray]) -> float:
+    loglikeli_sum = 0.0
     for hs, xs in zip(hs_list, xs_list):
-        _expectation_step(hs, mp, xs)
+        loglikeli_sum += _expectation_step(hs, mp, xs)
+    return loglikeli_sum
 
-def _expectation_step(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
+
+def _expectation_step(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray) -> float:
     alpha_forward(hs, mp, xs)
     beta_forward(hs, mp, xs)
 
