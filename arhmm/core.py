@@ -5,7 +5,7 @@ import math
 
 from arhmm.propagator import Propagator
 
-class ModelParameter:
+class ARHMM:
     A: np.ndarray
     props: List[Propagator]
     pmf_z1: np.ndarray
@@ -39,14 +39,14 @@ class HiddenStates:
     @property
     def n_phase(self): return len(self.z_ests[0])
 
-def expectation_step(hs_list: List[HiddenStates], mp: ModelParameter, xs_list: List[np.ndarray]) -> float:
+def expectation_step(hs_list: List[HiddenStates], mp: ARHMM, xs_list: List[np.ndarray]) -> float:
     loglikeli_sum = 0.0
     for hs, xs in zip(hs_list, xs_list):
         loglikeli_sum += _expectation_step(hs, mp, xs)
     return loglikeli_sum
 
 
-def _expectation_step(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray) -> float:
+def _expectation_step(hs: HiddenStates, mp: ARHMM, xs: np.ndarray) -> float:
     alpha_forward(hs, mp, xs)
     beta_forward(hs, mp, xs)
 
@@ -65,7 +65,7 @@ def _expectation_step(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray) -> f
     log_likeli = sum(math.log(c) for c in hs.c_seq)
     return log_likeli
 
-def alpha_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
+def alpha_forward(hs: HiddenStates, mp: ARHMM, xs: np.ndarray):
     hs.c_seq[0] = 1.0
     x1, x2 = xs[0], xs[1]
     px1 = 1.0 # deterministic x 
@@ -85,7 +85,7 @@ def alpha_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
         hs.c_seq[t+1] = sum(hs.alphas[t])
         hs.alphas[t] /= hs.c_seq[t+1]
 
-def beta_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
+def beta_forward(hs: HiddenStates, mp: ARHMM, xs: np.ndarray):
     n_seq, n_dim = xs.shape
     hs.betas[n_seq - 2] = np.ones(mp.n_phase)
     for t in range(n_seq-3, -1, -1):
@@ -98,7 +98,7 @@ def beta_forward(hs: HiddenStates, mp: ModelParameter, xs: np.ndarray):
             hs.betas[t][j] = sum
             hs.betas[t][j] /= hs.c_seq[t+2]
 
-def maximization_step(hs_list: List[HiddenStates], mp: ModelParameter, xs_list: List[np.ndarray]):
+def maximization_step(hs_list: List[HiddenStates], mp: ARHMM, xs_list: List[np.ndarray]):
     assert len(hs_list) == len(xs_list)
 
     # update pmf_z1

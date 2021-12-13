@@ -4,7 +4,7 @@ import numpy as np
 
 from arhmm.dataset import generate_distinct_randomwalks
 from arhmm.propagator import Propagator
-from arhmm.core import ModelParameter, beta_forward
+from arhmm.core import ARHMM, beta_forward
 from arhmm.core import HiddenStates
 from arhmm.core import alpha_forward
 from arhmm.core import _expectation_step
