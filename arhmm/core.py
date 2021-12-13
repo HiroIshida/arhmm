@@ -1,23 +1,9 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 import numpy as np
 import math
 
 from arhmm.propagator import Propagator
-
-class ARHMM:
-    A: np.ndarray
-    props: List[Propagator]
-    pmf_z1: np.ndarray
-    def __init__(self, A: np.ndarray, props: List[Propagator]):
-        n_phase = A.shape[0]
-        pmf_z1 = np.zeros(n_phase); pmf_z1[0] = 1.0 # because initial phase must be phase 1
-        self.A = A
-        self.props = props
-        self.pmf_z1 = pmf_z1
-
-    @property
-    def n_phase(self): return self.A.shape[0]
 
 @dataclass
 class HiddenStates:
@@ -38,6 +24,33 @@ class HiddenStates:
 
     @property
     def n_phase(self): return len(self.z_ests[0])
+
+class ARHMM:
+    A: np.ndarray
+    props: List[Propagator]
+    pmf_z1: np.ndarray
+    def __init__(self, A: np.ndarray, props: List[Propagator]):
+        assert A.shape[0] == len(props)
+        n_phase = A.shape[0]
+        pmf_z1 = np.zeros(n_phase); pmf_z1[0] = 1.0 # because initial phase must be phase 1
+        self.A = A
+        self.props = props
+        self.pmf_z1 = pmf_z1
+
+    @property
+    def n_phase(self): return self.A.shape[0]
+
+    def fit(self, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10) -> Tuple[List[HiddenStates], List[float]]:
+        hs_list = [HiddenStates.construct(self.n_phase, len(xs)) for xs in xs_list]
+
+        loglikeli_seq = []
+        for i in range(n_max_iter):
+            loglikeli = expectation_step(hs_list, self, xs_list)
+            maximization_step(hs_list, self, xs_list)
+            loglikeli_seq.append(loglikeli)
+            if i < 1: continue
+            if (loglikeli_seq[-1] - loglikeli_seq[-2]) < f_tol: break
+        return hs_list, loglikeli_seq
 
 def expectation_step(hs_list: List[HiddenStates], mp: ARHMM, xs_list: List[np.ndarray]) -> float:
     loglikeli_sum = 0.0

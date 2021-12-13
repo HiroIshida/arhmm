@@ -32,15 +32,9 @@ if __name__=='__main__':
     prop1_est = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.3]))
     prop2_est = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.2]))
     A_init_est = np.array([[0.9, 0.1], [0.1, 0.9]])
-    mp_est = ARHMM(A_init_est, props=[prop1_est, prop2_est])
-
-    # run algorithm
-    hs_list = [HiddenStates.construct(2, len(xs)) for xs in xs_list]
-    loglikeli_seq = []
-    for i in range(3):
-        loglikeli = expectation_step(hs_list, mp_est, xs_list)
-        maximization_step(hs_list, mp_est, xs_list)
-        loglikeli_seq.append(loglikeli)
+    model = ARHMM(A_init_est, props=[prop1_est, prop2_est])
+    hs_list, loglikeli_list = model.fit(xs_list)
+    print(loglikeli_list)
 
     if visualize:
         import matplotlib.pyplot as plt
