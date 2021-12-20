@@ -43,22 +43,23 @@ class ARHMM:
     def fit(self, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False) -> Tuple[List[HiddenStates], List[float]]:
         hs_list = [HiddenStates.construct(self.n_phase, len(xs)) for xs in xs_list]
 
-        loglikeli_seq = []
+        loglikeli_list_seq = []
         for i in range(n_max_iter):
-            loglikeli = expectation_step(hs_list, self, xs_list)
+            loglikeli_list = expectation_step(hs_list, self, xs_list)
+            loglikeli_sum = sum(loglikeli_list)
             maximization_step(hs_list, self, xs_list)
             if verbose:
-                print('iter: {}, loglikeli {}'.format(i, loglikeli))
-            loglikeli_seq.append(loglikeli)
+                print('iter: {}, loglikeli {}'.format(i, loglikeli_sum))
+            loglikeli_list_seq.append(loglikeli_list)
             if i < 1: continue
-            if (loglikeli_seq[-1] - loglikeli_seq[-2]) < f_tol: break
-        return hs_list, loglikeli_seq
+            if (sum(loglikeli_list_seq[-1]) - sum(loglikeli_list_seq[-2])) < f_tol: break
+        return hs_list, loglikeli_list_seq
 
 def expectation_step(hs_list: List[HiddenStates], mp: ARHMM, xs_list: List[np.ndarray]) -> float:
-    loglikeli_sum = 0.0
+    loglikeli_list = []
     for hs, xs in zip(hs_list, xs_list):
-        loglikeli_sum += _expectation_step(hs, mp, xs)
-    return loglikeli_sum
+        loglikeli_list.append(_expectation_step(hs, mp, xs))
+    return loglikeli_list
 
 
 def _expectation_step(hs: HiddenStates, mp: ARHMM, xs: np.ndarray) -> float:
