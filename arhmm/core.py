@@ -40,13 +40,15 @@ class ARHMM:
     @property
     def n_phase(self): return self.A.shape[0]
 
-    def fit(self, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10) -> Tuple[List[HiddenStates], List[float]]:
+    def fit(self, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False) -> Tuple[List[HiddenStates], List[float]]:
         hs_list = [HiddenStates.construct(self.n_phase, len(xs)) for xs in xs_list]
 
         loglikeli_seq = []
         for i in range(n_max_iter):
             loglikeli = expectation_step(hs_list, self, xs_list)
             maximization_step(hs_list, self, xs_list)
+            if verbose:
+                print('iter: {}, loglikeli {}'.format(i, loglikeli))
             loglikeli_seq.append(loglikeli)
             if i < 1: continue
             if (loglikeli_seq[-1] - loglikeli_seq[-2]) < f_tol: break
