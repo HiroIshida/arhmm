@@ -1,12 +1,11 @@
-import sys
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup_requires = []
 
 install_requires = [
-        "numpy",
-        "scipy"
-        ]
+    "numpy",
+    "scipy"
+]
 
 setup(
     name='arhmm',

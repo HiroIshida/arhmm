@@ -1,6 +1,7 @@
 import numpy as np
 from arhmm.propagator import Propagator, create_sample_dataset
 
+
 def test_propagator():
     phi = np.eye(3) * 2
     cov = np.eye(3) * 0.1

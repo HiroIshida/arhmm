@@ -3,12 +3,11 @@ import numpy as np
 
 from arhmm.dataset import generate_swtiching_linear_seq
 from arhmm.propagator import Propagator
-from arhmm.core import ARHMM, HiddenStates
-from arhmm.core import expectation_step, maximization_step
+from arhmm.core import ARHMM
 
 np.random.seed(0)
 
-if __name__=='__main__':
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--visualize', action='store_true', help='visualize result')
     args = parser.parse_args()
@@ -44,7 +43,7 @@ if __name__=='__main__':
         phases = np.array([np.argmax(z_est) for z_est in hs.z_ests])
         fig, ax = plt.subplots()
         ax.plot(horizons, xs, 'k')
-        ax.plot(horizons[phases==0], xs[phases==0], 'ro')
-        ax.plot(horizons[phases==1], xs[phases==1], 'bo')
+        ax.plot(horizons[phases == 0], xs[phases == 0], 'ro')
+        ax.plot(horizons[phases == 1], xs[phases == 1], 'bo')
         ax.legend(['sequence', 'phase 0', 'phase 1'])
         plt.show()

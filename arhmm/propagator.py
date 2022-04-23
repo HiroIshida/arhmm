@@ -1,13 +1,14 @@
 from typing import List
 import numpy as np
-from numpy.core.numeric import outer
 import scipy.stats
+
 
 class Propagator:
     _dim: int
     _phi: np.ndarray
     _cov: np.ndarray
     _drift: np.ndarray
+
     def __init__(self, phi, cov, drift):
         self._dim = phi.shape[0]
         self._phi = phi
@@ -26,9 +27,8 @@ class Propagator:
 
     @classmethod
     def fit_parameter(cls, xs_list: List[np.ndarray], ws_list: List[np.ndarray]):
-        """
-        ws_list: weigt of regression. In this context, ws_list is phase probability
-        """
+        """ws_list: weigt of regression. In this context, ws_list is phase probability """
+
         assert len(xs_list) == len(ws_list)
         n_dim = xs_list[0].shape[1]
 
@@ -49,18 +49,19 @@ class Propagator:
             w_sum += sum(ws)
 
         # Thanks to Gauss-markov theorem, we can separate fitting processes into
-        # first, non probabilistic term  
+        # first, non probabilistic term
         tmp = np.linalg.inv(w_sum * xx_sum - np.outer(x_sum, x_sum))
         phi_est = tmp.dot(w_sum * xy_sum - np.outer(x_sum, y_sum))
-        b_est = (y_sum - phi_est.T.dot(x_sum)) * (1.0/w_sum)
+        b_est = (y_sum - phi_est.T.dot(x_sum)) * (1.0 / w_sum)
 
         cov_est = np.zeros((n_dim, n_dim))
         for xs, ws in zip(xs_list, ws_list):
             X = xs[0:-1]
             Y = xs[1:]
             tmp = Y - (X.dot(phi_est.T) + b_est)
-            cov_est += tmp.T.dot(np.diag(ws)).dot(tmp)/w_sum
+            cov_est += tmp.T.dot(np.diag(ws)).dot(tmp) / w_sum
         return cls(phi_est, cov_est, b_est)
+
 
 def create_sample_dataset(prop: Propagator):
     x_seq_list = []

@@ -1,7 +1,7 @@
 import numpy as np
 from arhmm.propagator import Propagator
-from arhmm.core import HiddenStates
 from arhmm.core import ARHMM
+
 
 def generate_swtiching_linear_seq(n_time, mp: ARHMM):
     x = np.array([0.0])
@@ -15,6 +15,7 @@ def generate_swtiching_linear_seq(n_time, mp: ARHMM):
         xs.append(x)
         zs.append(z)
     return np.array(xs), np.array(zs)
+
 
 def generate_distinct_randomwalks(N=10):
     noise_std = 1e-1
