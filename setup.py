@@ -13,4 +13,5 @@ setup(
     description='',
     license='MIT',
     install_requires=install_requires,
+    package_data={'arhmm': ['py.typed']}
 )
