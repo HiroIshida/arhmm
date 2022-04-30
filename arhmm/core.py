@@ -16,7 +16,15 @@ class HiddenStates:
 
     @classmethod
     def construct(cls, n_phase: int, n_seq: int):
-        z_ests = [np.zeros(n_phase) for _ in range(n_seq - 1)]
+        indices_list = np.array_split(list(range(n_seq - 1)), n_phase)
+        z_ests = []
+        for phase, indices in enumerate(indices_list):
+            for _ in range(len(indices)):
+                e = np.zeros(n_phase)
+                e[phase] = 1.0
+                z_ests.append(e)
+        assert len(z_ests) == n_seq - 1
+
         zz_ests = [np.zeros((n_phase, n_phase)) for _ in range(n_seq - 2)]
         alphas = [np.zeros(n_phase) for _ in range(n_seq - 1)]
         betas = [np.zeros(n_phase) for _ in range(n_seq - 1)]
