@@ -2,9 +2,8 @@ import numpy as np
 from arhmm.propagator import Propagator
 
 
-def create_sample_dataset(prop: Propagator):
+def create_sample_dataset(prop: Propagator, N: int):
     x_seq_list = []
-    N = 300
     for i in range(N):
         x = np.random.randn(2)
         x_list = [x]
@@ -21,7 +20,7 @@ def test_propagator():
     cov = np.eye(2) * 0.3
     drift = np.array([-0.01, 0.01])
     prop = Propagator(phi, cov, drift)
-    x_seq_list, ws_list = create_sample_dataset(prop)
+    x_seq_list, ws_list = create_sample_dataset(prop, 300)
 
     prop_fit = Propagator.fit_parameter(x_seq_list, ws_list)
     np.testing.assert_almost_equal(prop_fit._phi, phi, decimal=2)
