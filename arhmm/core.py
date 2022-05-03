@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Tuple
 import numpy as np
+import copy
 import math
 
 from arhmm.propagator import Propagator
@@ -54,25 +55,8 @@ class ARHMM:
     def n_phase(self):
         return self.A.shape[0]
 
-    def fit(self, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False) -> Tuple[List[HiddenStates], List[float]]:
-        hs_list = [HiddenStates.construct(self.n_phase, len(xs)) for xs in xs_list]
 
-        loglikeli_list_seq = []
-        for i in range(n_max_iter):
-            loglikeli_list = expectation_step(hs_list, self, xs_list)
-            loglikeli_sum = sum(loglikeli_list)
-            maximization_step(hs_list, self, xs_list)
-            if verbose:
-                print('iter: {}, loglikeli {}'.format(i, loglikeli_sum))
-            loglikeli_list_seq.append(loglikeli_list)
-            if i < 1:
-                continue
-            if (sum(loglikeli_list_seq[-1]) - sum(loglikeli_list_seq[-2])) < f_tol:
-                break
-        return hs_list, loglikeli_list_seq
-
-
-def expectation_step(hs_list: List[HiddenStates], mp: ARHMM, xs_list: List[np.ndarray]) -> float:
+def expectation_step(hs_list: List[HiddenStates], mp: ARHMM, xs_list: List[np.ndarray]) -> List[float]:
     loglikeli_list = []
     for hs, xs in zip(hs_list, xs_list):
         loglikeli_list.append(_expectation_step(hs, mp, xs))
@@ -160,3 +144,32 @@ def maximization_step(hs_list: List[HiddenStates], mp: ARHMM, xs_list: List[np.n
     for i in range(mp.n_phase):
         ws_list = [np.array([z_est[i] for z_est in hs.z_ests]) for hs in hs_list]
         mp.props[i] = Propagator.fit_parameter(xs_list, ws_list)
+
+
+def train_arhmm(arhmm: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False, ignore_error=False) -> Tuple[ARHMM, List[HiddenStates], List[float]]:
+    hs_list = [HiddenStates.construct(arhmm.n_phase, len(xs)) for xs in xs_list]
+
+    loglikeli_list_seq = []
+    for i in range(n_max_iter):
+        arhmm_stable = copy.deepcopy(arhmm)
+        hs_list_stable = copy.deepcopy(hs_list)
+        loglikeli_list_seq_stable = copy.deepcopy(loglikeli_list_seq)
+
+        try:
+            loglikeli_list = expectation_step(hs_list, arhmm, xs_list)
+            loglikeli_sum = sum(loglikeli_list)
+            maximization_step(hs_list, arhmm, xs_list)
+            if verbose:
+                print('iter: {}, loglikeli {}'.format(i, loglikeli_sum))
+            loglikeli_list_seq.append(loglikeli_list)
+            if i < 1:
+                continue
+            if (sum(loglikeli_list_seq[-1]) - sum(loglikeli_list_seq[-2])) < f_tol:
+                break
+        except ValueError as e:
+            if e.__str__() == 'math domain error':
+                break
+            else:
+                raise e
+
+    return arhmm_stable, hs_list_stable, loglikeli_list_seq_stable  # type: ignore

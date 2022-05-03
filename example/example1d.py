@@ -3,7 +3,7 @@ import numpy as np
 
 from arhmm.dataset import generate_swtiching_linear_seq
 from arhmm.propagator import Propagator
-from arhmm.core import ARHMM
+from arhmm.core import ARHMM, train_arhmm
 
 np.random.seed(0)
 
@@ -31,8 +31,8 @@ if __name__ == '__main__':
     prop1_est = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.3]))
     prop2_est = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.2]))
     A_init_est = np.array([[0.9, 0.1], [0.1, 0.9]])
-    model = ARHMM(A_init_est, props=[prop1_est, prop2_est])
-    hs_list, loglikeli_list = model.fit(xs_list)
+    model_init = ARHMM(A_init_est, props=[prop1_est, prop2_est])
+    model, hs_list, loglikeli_list = train_arhmm(model_init, xs_list, verbose=True)
     print(loglikeli_list)
 
     if visualize:
