@@ -41,7 +41,7 @@ def generate_distinct_randomwalks(N=10):
     return xs_list, zs_list, mp_real, mp_est
 
 
-def irreversible_random_walk_dataset(n_data: int, n_dim: int, n_phase: int) -> Tuple[List[List[PhasedState]], ARHMM]:
+def irreversible_random_walk_dataset(n_data: int, n_dim: int, n_phase: int, n_seq_len: int) -> Tuple[List[List[PhasedState]], ARHMM]:
     props = []
     for i in range(n_phase):
         phi = np.random.randn(n_dim, n_dim)
@@ -51,13 +51,13 @@ def irreversible_random_walk_dataset(n_data: int, n_dim: int, n_phase: int) -> T
         prop = Propagator(phi, cov, bias)
         props.append(prop)
 
-    A_init = create_irreversible_markov_matrix(n_phase, 0.95)
+    A_init = create_irreversible_markov_matrix(n_phase, 0.8)
     model = ARHMM(A_init, props=props)
 
     seqs: List[List[PhasedState]] = []
     for i in range(n_data):
         seq = [PhasedState(np.random.randn(n_dim), 0)]
-        for j in range(100):
+        for j in range(n_seq_len):
             seq.append(model(seq[-1]))
         seqs.append(seq)
     return seqs, model
