@@ -4,13 +4,13 @@ import scipy.stats
 
 
 class Propagator:
-    _dim: int
+    dim: int
     _phi: np.ndarray
     _cov: np.ndarray
     _drift: np.ndarray
 
     def __init__(self, phi, cov, drift):
-        self._dim = phi.shape[0]
+        self.dim = phi.shape[0]
         self._phi = phi
         self._cov = cov
         self._drift = drift

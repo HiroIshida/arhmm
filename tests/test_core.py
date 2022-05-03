@@ -3,6 +3,7 @@ import numpy as np
 # np.random.seed(seed=0)
 
 from arhmm.dataset import generate_distinct_randomwalks
+from arhmm.dataset import irreversible_random_walk_dataset
 from arhmm.core import HiddenStates
 from arhmm.core import _expectation_step
 from arhmm.core import expectation_step
@@ -28,6 +29,16 @@ def test_expectation_step(data_2d_randomwalk):
         pred_phases = np.array([np.argmax(z) for z in hs.z_ests])
         error = sum(np.abs(pred_phases - zs[:-1])) / len(pred_phases)
         assert error < 0.1
+
+
+def test_expectation_step_():
+    n_dim = 4
+    n_phase = 3
+    seqs, model = irreversible_random_walk_dataset(10, n_dim, n_phase)
+    for seq in seqs:
+        xs = np.array([s.x for s in seq])
+        hs = HiddenStates.construct(n_phase, len(seq))
+        _expectation_step(hs, model, xs)
 
 
 def test_em_algorithm(data_2d_randomwalk):

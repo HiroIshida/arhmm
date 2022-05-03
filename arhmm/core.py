@@ -6,7 +6,6 @@ import math
 
 from arhmm.propagator import Propagator
 
-
 @dataclass
 class HiddenStates:
     z_ests: List[np.ndarray]
@@ -37,6 +36,12 @@ class HiddenStates:
         return len(self.z_ests[0])
 
 
+@dataclass
+class PhasedState:
+    x: np.ndarray
+    phase: int
+
+
 class ARHMM:
     A: np.ndarray
     props: List[Propagator]
@@ -54,6 +59,15 @@ class ARHMM:
     @property
     def n_phase(self):
         return self.A.shape[0]
+
+    @property
+    def n_dim(self):
+        return self.props[0].dim
+
+    def __call__(self, state: PhasedState) -> PhasedState:
+        x_new = self.props[state.phase](state.x)
+        phase_new = np.random.choice(self.n_phase, 1, replace=False, p=self.A[:, state.phase])[0]
+        return PhasedState(x_new, phase_new)
 
 
 def expectation_step(hs_list: List[HiddenStates], mp: ARHMM, xs_list: List[np.ndarray]) -> List[float]:
