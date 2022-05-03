@@ -51,15 +51,16 @@ class Propagator:
         # Thanks to Gauss-markov theorem, we can separate fitting processes into
         # first, non probabilistic term
         tmp = np.linalg.inv(w_sum * xx_sum - np.outer(x_sum, x_sum))
-        phi_est = tmp.dot(w_sum * xy_sum - np.outer(x_sum, y_sum))
-        b_est = (y_sum - phi_est.T.dot(x_sum)) * (1.0 / w_sum)
+        phi_est = tmp.dot(w_sum * xy_sum - np.outer(x_sum, y_sum)).T
+        b_est = (y_sum - phi_est.dot(x_sum)) * (1.0 / w_sum)
 
         cov_est = np.zeros((n_dim, n_dim))
         for xs, ws in zip(xs_list, ws_list):
             X = xs[0:-1]
-            Y = xs[1:]
-            tmp = Y - (X.dot(phi_est.T) + b_est)
-            cov_est += tmp.T.dot(np.diag(ws)).dot(tmp) / w_sum
+            Xp = xs[1:]
+            Xp_hat = (phi_est.dot(X.T)).T + b_est
+            diff = Xp - Xp_hat
+            cov_est += diff.T.dot(np.diag(ws)).dot(diff) / w_sum
         return cls(phi_est, cov_est, b_est)
 
 
