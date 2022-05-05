@@ -36,7 +36,7 @@ def test_em_algorithm(data_2d_randomwalk):
     loglikeli_seq = []
     for i in range(3):
         hs_list, loglikeli = expectation_step(mp_est, xs_list)
-        maximization_step(hs_list, mp_est, xs_list)
+        mp_est = maximization_step(hs_list, xs_list)
         loglikeli_seq.append(loglikeli)
     is_loglikeli_ascending = sorted(loglikeli_seq) == loglikeli_seq
     assert is_loglikeli_ascending
