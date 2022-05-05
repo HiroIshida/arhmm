@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 import numpy as np
-import copy
 import math
 
 from arhmm.propagator import Propagator
@@ -148,31 +147,21 @@ class ARHMM:
                 hs.betas[t][j] /= hs.c_seq[t + 2]
 
 
-def train_arhmm(arhmm_init: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False, ignore_error=False) -> Tuple[ARHMM, List[HiddenStates], List[float]]:
-
+def train_arhmm(arhmm_init: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False) -> Tuple[ARHMM, List[HiddenStates], List[float]]:
     arhmm = arhmm_init
     loglikeli_list_seq = []
     for i in range(n_max_iter):
-        try:
-            hs_list, loglikeli_list = arhmm.expect_hs_list(xs_list)
-            loglikeli_sum = sum(loglikeli_list)
-            arhmm = ARHMM.construct_by_maximization(hs_list, xs_list)
-            if verbose:
-                print('iter: {}, loglikeli {}'.format(i, loglikeli_sum))
-            loglikeli_list_seq.append(loglikeli_list)
-            if i < 1:
-                continue
-            if (sum(loglikeli_list_seq[-1]) - sum(loglikeli_list_seq[-2])) < f_tol:
-                break
+        print(i)
+        hs_list, loglikeli_list = arhmm.expect_hs_list(xs_list)
+        loglikeli_sum = sum(loglikeli_list)
+        arhmm = ARHMM.construct_by_maximization(hs_list, xs_list)
+        if verbose:
+            print('iter: {}, loglikeli {}'.format(i, loglikeli_sum))
+        loglikeli_list_seq.append(loglikeli_list)
 
-            arhmm_stable = copy.deepcopy(arhmm)
-            hs_list_stable = copy.deepcopy(hs_list)
-            loglikeli_list_seq_stable = copy.deepcopy(loglikeli_list_seq)
+        if i < 1:
+            continue
+        if (sum(loglikeli_list_seq[-1]) - sum(loglikeli_list_seq[-2])) < f_tol:
+            break
 
-        except ValueError as e:
-            if e.__str__() == 'math domain error':
-                break
-            else:
-                raise e
-
-    return arhmm_stable, hs_list_stable, loglikeli_list_seq_stable  # type: ignore
+    return arhmm, hs_list, loglikeli_list_seq  # type: ignore
