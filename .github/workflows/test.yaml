@@ -36,8 +36,6 @@ jobs:
               run: |
                   pip3 install pytest
                   pip3 install mypy==0.910
-                  #- name: Run mypy
-                  #run: mypy . --exclude setup.py
 
             - name: Run Pytest
               run: |
@@ -46,3 +44,6 @@ jobs:
             - name: Run example
               run: |
                   python3 example/example1d.py
+
+            - name: Run mypy
+              run: mypy .
