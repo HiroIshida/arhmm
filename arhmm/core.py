@@ -83,73 +83,69 @@ class ARHMM:
             props.append(Propagator.fit_parameter(xs_list, ws_list))
         return cls(A, props, pmf_z1)
 
+    def expect_hs_list(self, xs_list: List[np.ndarray]) -> Tuple[List[HiddenStates], List[float]]:
+        hs_list = []
+        loglikeli_list = []
+        for xs in xs_list:
+            hs, log_likeli = self.expect_hs(xs)
+            hs_list.append(hs)
+            loglikeli_list.append(log_likeli)
+        return hs_list, loglikeli_list
 
-def expectation_step(mp: ARHMM, xs_list: List[np.ndarray]) -> Tuple[List[HiddenStates], List[float]]:
-    hs_list = []
-    loglikeli_list = []
-    for xs in xs_list:
-        hs, log_likeli = _expectation_step(mp, xs)
-        hs_list.append(hs)
-        loglikeli_list.append(log_likeli)
-    return hs_list, loglikeli_list
+    def expect_hs(self, xs: np.ndarray) -> Tuple[HiddenStates, float]:
+        hs = HiddenStates.construct(self.n_phase, len(xs))
+        self.alpha_forward(hs, xs)
+        self.beta_forward(hs, xs)
 
+        for t in range(len(xs) - 1):
+            hs.z_ests[t] = hs.alphas[t] * hs.betas[t]
 
-def _expectation_step(mp: ARHMM, xs: np.ndarray) -> Tuple[HiddenStates, float]:
-    hs = HiddenStates.construct(mp.n_phase, len(xs))
-    alpha_forward(hs, mp, xs)
-    beta_forward(hs, mp, xs)
+        for t in range(len(xs) - 2):
+            for i in range(self.n_phase):
+                for j in range(self.n_phase):
+                    x_t, x_tt = xs[t + 1], xs[t + 1]
+                    prob_trans = self.props[j].transition_prob(x_t, x_tt)
+                    tmp = hs.alphas[t][i] * self.A[j, i] * prob_trans * hs.betas[t + 1][j]
+                    hs.zz_ests[t][i, j] = tmp / hs.c_seq[t + 2]
 
-    for t in range(len(xs) - 1):
-        hs.z_ests[t] = hs.alphas[t] * hs.betas[t]
+        # compute log_likelihood
+        log_likeli = sum(math.log(c) for c in hs.c_seq)
+        return hs, log_likeli
 
-    for t in range(len(xs) - 2):
-        for i in range(mp.n_phase):
-            for j in range(mp.n_phase):
-                x_t, x_tt = xs[t + 1], xs[t + 1]
-                prob_trans = mp.props[j].transition_prob(x_t, x_tt)
-                tmp = hs.alphas[t][i] * mp.A[j, i] * prob_trans * hs.betas[t + 1][j]
-                hs.zz_ests[t][i, j] = tmp / hs.c_seq[t + 2]
+    def alpha_forward(self, hs: HiddenStates, xs: np.ndarray):
+        hs.c_seq[0] = 1.0
+        x1, x2 = xs[0], xs[1]  # noqa
+        px1 = 1.0  # deterministic x
 
-    # compute log_likelihood
-    log_likeli = sum(math.log(c) for c in hs.c_seq)
-    return hs, log_likeli
+        def trans_probs(x, x_next):
+            return np.array([prop.transition_prob(x, x_next) for prop in self.props])
 
+        tmp = trans_probs(x1, x2) * self.pmf_z1 * px1
+        hs.c_seq[1] = sum(tmp)
+        hs.alphas[0] = tmp / hs.c_seq[1]
 
-def alpha_forward(hs: HiddenStates, mp: ARHMM, xs: np.ndarray):
-    hs.c_seq[0] = 1.0
-    x1, x2 = xs[0], xs[1]  # noqa
-    px1 = 1.0  # deterministic x
+        n_time = len(xs)
+        for t in range(1, n_time - 1):
+            x_t, x_tp1 = xs[t], xs[t + 1]
+            for i in range(self.n_phase):
+                integral_term = sum(self.A[i, j] * hs.alphas[t - 1][j] for j in range(self.n_phase))
+                hs.alphas[t][i] = self.props[i].transition_prob(x_t, x_tp1) * integral_term
 
-    def trans_probs(x, x_next):
-        return np.array([prop.transition_prob(x, x_next) for prop in mp.props])
+            hs.c_seq[t + 1] = sum(hs.alphas[t])
+            hs.alphas[t] /= hs.c_seq[t + 1]
 
-    tmp = trans_probs(x1, x2) * mp.pmf_z1 * px1
-    hs.c_seq[1] = sum(tmp)
-    hs.alphas[0] = tmp / hs.c_seq[1]
-
-    n_time = len(xs)
-    for t in range(1, n_time - 1):
-        x_t, x_tp1 = xs[t], xs[t + 1]
-        for i in range(mp.n_phase):
-            integral_term = sum(mp.A[i, j] * hs.alphas[t - 1][j] for j in range(mp.n_phase))
-            hs.alphas[t][i] = mp.props[i].transition_prob(x_t, x_tp1) * integral_term
-
-        hs.c_seq[t + 1] = sum(hs.alphas[t])
-        hs.alphas[t] /= hs.c_seq[t + 1]
-
-
-def beta_forward(hs: HiddenStates, mp: ARHMM, xs: np.ndarray):
-    n_seq, n_dim = xs.shape
-    hs.betas[n_seq - 2] = np.ones(mp.n_phase)
-    for t in range(n_seq - 3, -1, -1):
-        x_tp1 = xs[t + 1]
-        x_tp2 = xs[t + 2]
-        for j in range(mp.n_phase):  # phase at t
-            sum = 0.0
-            for i in range(mp.n_phase):  # phase at t+1
-                sum += mp.A[i, j] * mp.props[i].transition_prob(x_tp1, x_tp2) * hs.betas[t + 1][i]
-            hs.betas[t][j] = sum
-            hs.betas[t][j] /= hs.c_seq[t + 2]
+    def beta_forward(self, hs: HiddenStates, xs: np.ndarray):
+        n_seq, n_dim = xs.shape
+        hs.betas[n_seq - 2] = np.ones(self.n_phase)
+        for t in range(n_seq - 3, -1, -1):
+            x_tp1 = xs[t + 1]
+            x_tp2 = xs[t + 2]
+            for j in range(self.n_phase):  # phase at t
+                s = 0.0
+                for i in range(self.n_phase):  # phase at t+1
+                    s += self.A[i, j] * self.props[i].transition_prob(x_tp1, x_tp2) * hs.betas[t + 1][i]
+                hs.betas[t][j] = s
+                hs.betas[t][j] /= hs.c_seq[t + 2]
 
 
 def train_arhmm(arhmm_init: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False, ignore_error=False) -> Tuple[ARHMM, List[HiddenStates], List[float]]:
@@ -158,7 +154,7 @@ def train_arhmm(arhmm_init: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_
     loglikeli_list_seq = []
     for i in range(n_max_iter):
         try:
-            hs_list, loglikeli_list = expectation_step(arhmm, xs_list)
+            hs_list, loglikeli_list = arhmm.expect_hs_list(xs_list)
             loglikeli_sum = sum(loglikeli_list)
             arhmm = ARHMM.construct_by_maximization(hs_list, xs_list)
             if verbose:
