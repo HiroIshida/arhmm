@@ -56,14 +56,18 @@ class ARHMM:
         return self.A.shape[0]
 
 
-def expectation_step(hs_list: List[HiddenStates], mp: ARHMM, xs_list: List[np.ndarray]) -> List[float]:
+def expectation_step(mp: ARHMM, xs_list: List[np.ndarray]) -> Tuple[List[HiddenStates], List[float]]:
+    hs_list = []
     loglikeli_list = []
-    for hs, xs in zip(hs_list, xs_list):
-        loglikeli_list.append(_expectation_step(hs, mp, xs))
-    return loglikeli_list
+    for xs in xs_list:
+        hs, log_likeli = _expectation_step(mp, xs)
+        hs_list.append(hs)
+        loglikeli_list.append(log_likeli)
+    return hs_list, loglikeli_list
 
 
-def _expectation_step(hs: HiddenStates, mp: ARHMM, xs: np.ndarray) -> float:
+def _expectation_step(mp: ARHMM, xs: np.ndarray) -> Tuple[HiddenStates, float]:
+    hs = HiddenStates.construct(mp.n_phase, len(xs))
     alpha_forward(hs, mp, xs)
     beta_forward(hs, mp, xs)
 
@@ -80,7 +84,7 @@ def _expectation_step(hs: HiddenStates, mp: ARHMM, xs: np.ndarray) -> float:
 
     # compute log_likelihood
     log_likeli = sum(math.log(c) for c in hs.c_seq)
-    return log_likeli
+    return hs, log_likeli
 
 
 def alpha_forward(hs: HiddenStates, mp: ARHMM, xs: np.ndarray):
@@ -147,16 +151,11 @@ def maximization_step(hs_list: List[HiddenStates], mp: ARHMM, xs_list: List[np.n
 
 
 def train_arhmm(arhmm: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False, ignore_error=False) -> Tuple[ARHMM, List[HiddenStates], List[float]]:
-    hs_list = [HiddenStates.construct(arhmm.n_phase, len(xs)) for xs in xs_list]
 
     loglikeli_list_seq = []
     for i in range(n_max_iter):
-        arhmm_stable = copy.deepcopy(arhmm)
-        hs_list_stable = copy.deepcopy(hs_list)
-        loglikeli_list_seq_stable = copy.deepcopy(loglikeli_list_seq)
-
         try:
-            loglikeli_list = expectation_step(hs_list, arhmm, xs_list)
+            hs_list, loglikeli_list = expectation_step(arhmm, xs_list)
             loglikeli_sum = sum(loglikeli_list)
             maximization_step(hs_list, arhmm, xs_list)
             if verbose:
@@ -166,6 +165,11 @@ def train_arhmm(arhmm: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=
                 continue
             if (sum(loglikeli_list_seq[-1]) - sum(loglikeli_list_seq[-2])) < f_tol:
                 break
+
+            arhmm_stable = copy.deepcopy(arhmm)
+            hs_list_stable = copy.deepcopy(hs_list)
+            loglikeli_list_seq_stable = copy.deepcopy(loglikeli_list_seq)
+
         except ValueError as e:
             if e.__str__() == 'math domain error':
                 break

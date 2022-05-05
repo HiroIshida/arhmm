@@ -23,8 +23,7 @@ def test_expectation_step(data_2d_randomwalk):
 
     for i in range(len(xs_list)):
         xs, zs = xs_list[i], zs_list[i]
-        hs = HiddenStates.construct(2, len(xs))
-        _expectation_step(hs, mp_real, xs)
+        hs, _ = _expectation_step(mp_real, xs)
         pred_phases = np.array([np.argmax(z) for z in hs.z_ests])
         error = sum(np.abs(pred_phases - zs[:-1])) / len(pred_phases)
         assert error < 0.1
@@ -36,7 +35,7 @@ def test_em_algorithm(data_2d_randomwalk):
     hs_list = [HiddenStates.construct(2, len(xs)) for xs in xs_list]
     loglikeli_seq = []
     for i in range(3):
-        loglikeli = expectation_step(hs_list, mp_est, xs_list)
+        hs_list, loglikeli = expectation_step(mp_est, xs_list)
         maximization_step(hs_list, mp_est, xs_list)
         loglikeli_seq.append(loglikeli)
     is_loglikeli_ascending = sorted(loglikeli_seq) == loglikeli_seq
