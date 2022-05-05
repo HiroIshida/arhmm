@@ -3,10 +3,9 @@ import numpy as np
 # np.random.seed(seed=0)
 
 from arhmm.dataset import generate_distinct_randomwalks
-from arhmm.core import HiddenStates
+from arhmm.core import ARHMM, HiddenStates
 from arhmm.core import _expectation_step
 from arhmm.core import expectation_step
-from arhmm.core import maximization_step
 
 np.random.seed(0)
 
@@ -36,7 +35,7 @@ def test_em_algorithm(data_2d_randomwalk):
     loglikeli_seq = []
     for i in range(3):
         hs_list, loglikeli = expectation_step(mp_est, xs_list)
-        mp_est = maximization_step(hs_list, xs_list)
+        mp_est = ARHMM.construct_by_maximization(hs_list, xs_list)
         loglikeli_seq.append(loglikeli)
     is_loglikeli_ascending = sorted(loglikeli_seq) == loglikeli_seq
     assert is_loglikeli_ascending

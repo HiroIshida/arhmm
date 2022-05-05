@@ -55,6 +55,34 @@ class ARHMM:
     def n_phase(self):
         return self.A.shape[0]
 
+    @classmethod
+    def construct_by_maximization(cls, hs_list: List[HiddenStates], xs_list: List[np.ndarray]) -> 'ARHMM':
+        assert len(hs_list) == len(xs_list)
+        n_phase = hs_list[0].n_phase
+
+        # update pmf_z1
+        pmf_z1 = np.sum([hs.z_ests[0] for hs in hs_list]) / len(hs_list)
+
+        # update A
+        A = np.zeros((n_phase, n_phase))
+        for hs in hs_list:
+            n_seq = len(hs.z_ests) + 1
+            for t in range(n_seq - 2):
+                for i in range(n_phase):
+                    for j in range(n_phase):
+                        # Note that our stochastic matrix is different (transposed) from
+                        # the one in PRML
+                        A[j, i] += hs.zz_ests[t][i, j]
+        for j in range(n_phase):  # normalize
+            A[:, j] /= sum(A[:, j])
+
+        # update prop list
+        props: List[Propagator] = []
+        for i in range(n_phase):
+            ws_list = [np.array([z_est[i] for z_est in hs.z_ests]) for hs in hs_list]
+            props.append(Propagator.fit_parameter(xs_list, ws_list))
+        return cls(A, props, pmf_z1)
+
 
 def expectation_step(mp: ARHMM, xs_list: List[np.ndarray]) -> Tuple[List[HiddenStates], List[float]]:
     hs_list = []
@@ -124,35 +152,6 @@ def beta_forward(hs: HiddenStates, mp: ARHMM, xs: np.ndarray):
             hs.betas[t][j] /= hs.c_seq[t + 2]
 
 
-def maximization_step(hs_list: List[HiddenStates], xs_list: List[np.ndarray]) -> ARHMM:
-    assert len(hs_list) == len(xs_list)
-    n_phase = hs_list[0].n_phase
-
-    # update pmf_z1
-    pmf_z1 = np.sum([hs.z_ests[0] for hs in hs_list]) / len(hs_list)
-
-    # update A
-    A = np.zeros((n_phase, n_phase))
-    for hs in hs_list:
-        n_seq = len(hs.z_ests) + 1
-        for t in range(n_seq - 2):
-            for i in range(n_phase):
-                for j in range(n_phase):
-                    # Note that our stochastic matrix is different (transposed) from
-                    # the one in PRML
-                    A[j, i] += hs.zz_ests[t][i, j]
-    for j in range(n_phase):  # normalize
-        A[:, j] /= sum(A[:, j])
-
-    # update prop list
-    props: List[Propagator] = []
-    for i in range(n_phase):
-        ws_list = [np.array([z_est[i] for z_est in hs.z_ests]) for hs in hs_list]
-        props.append(Propagator.fit_parameter(xs_list, ws_list))
-
-    return ARHMM(A, props, pmf_z1)
-
-
 def train_arhmm(arhmm_init: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False, ignore_error=False) -> Tuple[ARHMM, List[HiddenStates], List[float]]:
 
     arhmm = arhmm_init
@@ -161,7 +160,7 @@ def train_arhmm(arhmm_init: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_
         try:
             hs_list, loglikeli_list = expectation_step(arhmm, xs_list)
             loglikeli_sum = sum(loglikeli_list)
-            arhmm = maximization_step(hs_list, xs_list)
+            arhmm = ARHMM.construct_by_maximization(hs_list, xs_list)
             if verbose:
                 print('iter: {}, loglikeli {}'.format(i, loglikeli_sum))
             loglikeli_list_seq.append(loglikeli_list)
