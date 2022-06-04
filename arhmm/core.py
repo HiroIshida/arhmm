@@ -14,6 +14,9 @@ class HiddenStates:
     betas: List[np.ndarray]
     c_seq: np.ndarray
 
+    def to_phase_seq(self) -> List[int]:
+        return [int(np.argmax(z_est)) for z_est in self.z_ests]
+
     @classmethod
     def construct(cls, n_phase: int, n_seq: int):
         indices_list = np.array_split(list(range(n_seq - 1)), n_phase)
