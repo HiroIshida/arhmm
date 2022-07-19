@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -25,7 +26,7 @@ class Propagator:
     @classmethod
     def fit_parameter(
         cls, xs_list: List[np.ndarray], ws_list: Optional[List[np.ndarray]] = None
-    ) -> Propagator:
+    ) -> "Propagator":
         """ws_list: weigt of regression. In this context, ws_list is phase probability"""
 
         if ws_list is None:
@@ -66,6 +67,40 @@ class Propagator:
 
         dim = len(phi_est)
         return cls(dim, phi_est, cov_est, b_est)
+
+    def dumps(self) -> str:
+        d = {}
+        for k in self.__dataclass_fields__.keys():
+            v = self.__dict__[k]
+            if isinstance(v, np.ndarray):
+                # serialize numpy as a dict
+                d[k] = {"dtype": str(v.dtype), "val": v.tolist()}
+            else:
+                d[k] = v
+        return json.dumps(d)
+
+    @classmethod
+    def loads(cls, json_data: str) -> "Propagator":
+        d = json.loads(json_data)
+        kwargs = {}
+        for k in cls.__dataclass_fields__.keys():
+            v = d[k]
+            if isinstance(v, dict):
+                v = np.array(v["val"], dtype=np.dtype(v["dtype"]))
+            kwargs[k] = v
+        return cls(**kwargs)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Propagator):
+            return NotImplemented
+        assert type(self) == type(other)
+        if not np.allclose(self._phi, other._phi, atol=1e-6):
+            return False
+        if not np.allclose(self._cov, other._cov, atol=1e-6):
+            return False
+        if not np.allclose(self._drift, other._drift, atol=1e-6):
+            return False
+        return True
 
 
 def create_sample_dataset(prop: Propagator):

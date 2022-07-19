@@ -27,3 +27,6 @@ def test_propagator():
     np.testing.assert_almost_equal(prop_fit._phi, phi, decimal=2)
     np.testing.assert_almost_equal(prop_fit._drift, drift, decimal=2)
     np.testing.assert_almost_equal(prop_fit._cov, cov, decimal=2)
+
+    # test serialize / deserialize
+    assert Propagator.loads(prop.dumps()) == prop
