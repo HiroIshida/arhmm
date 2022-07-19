@@ -1,7 +1,7 @@
 import json
 import math
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -168,7 +168,7 @@ class ARHMM:
     @classmethod
     def loads(cls, jsonda_data: str) -> "ARHMM":
         d = json.loads(jsonda_data)
-        kwargs = {}
+        kwargs: Dict[str, Any] = {}
         kwargs["A"] = np.array(d["A"], dtype=np.float64)
         kwargs["props"] = [Propagator.loads(jd) for jd in d["props"]]
         kwargs["pmf_z1"] = np.array(d["pmf_z1"], dtype=np.float64)
@@ -181,7 +181,7 @@ class ARHMM:
 
         if not np.allclose(self.A, other.A, atol=1e-6):
             return False
-        if not np.allclose(self.pmf_z1, other.pmf_z1, atol=1e-6):
+        if not np.allclose(self.pmf_z1, other.pmf_z1, atol=1e-6):  # type: ignore
             return False
         for prop_self, prop_other in zip(self.props, other.props):
             if prop_self != prop_other:
