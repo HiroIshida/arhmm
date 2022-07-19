@@ -1,4 +1,5 @@
 from typing import List, Optional
+
 import numpy as np
 import scipy.stats
 
@@ -27,7 +28,7 @@ class Propagator:
 
     @classmethod
     def fit_parameter(cls, xs_list: List[np.ndarray], ws_list: Optional[List[np.ndarray]] = None):
-        """ws_list: weigt of regression. In this context, ws_list is phase probability """
+        """ws_list: weigt of regression. In this context, ws_list is phase probability"""
 
         if ws_list is None:
             ws_list = [np.ones(len(xs) - 1) for xs in xs_list]

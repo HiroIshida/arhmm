@@ -1,7 +1,8 @@
-from dataclasses import dataclass
-from typing import List, Tuple, Optional
-import numpy as np
 import math
+from dataclasses import dataclass
+from typing import List, Optional, Tuple
+
+import numpy as np
 
 from arhmm.propagator import Propagator
 
@@ -58,7 +59,9 @@ class ARHMM:
         return self.A.shape[0]
 
     @classmethod
-    def construct_by_maximization(cls, hs_list: List[HiddenStates], xs_list: List[np.ndarray]) -> 'ARHMM':
+    def construct_by_maximization(
+        cls, hs_list: List[HiddenStates], xs_list: List[np.ndarray]
+    ) -> "ARHMM":
         assert len(hs_list) == len(xs_list)
         n_phase = hs_list[0].n_phase
 
@@ -145,12 +148,18 @@ class ARHMM:
             for j in range(self.n_phase):  # phase at t
                 s = 0.0
                 for i in range(self.n_phase):  # phase at t+1
-                    s += self.A[i, j] * self.props[i].transition_prob(x_tp1, x_tp2) * hs.betas[t + 1][i]
+                    s += (
+                        self.A[i, j]
+                        * self.props[i].transition_prob(x_tp1, x_tp2)
+                        * hs.betas[t + 1][i]
+                    )
                 hs.betas[t][j] = s
                 hs.betas[t][j] /= hs.c_seq[t + 2]
 
 
-def train_arhmm(arhmm_init: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False) -> Tuple[ARHMM, List[HiddenStates], List[float]]:
+def train_arhmm(
+    arhmm_init: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False
+) -> Tuple[ARHMM, List[HiddenStates], List[float]]:
     arhmm = arhmm_init
     loglikeli_list_seq = []
     for i in range(n_max_iter):
@@ -159,7 +168,7 @@ def train_arhmm(arhmm_init: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_
         loglikeli_sum = sum(loglikeli_list)
         arhmm = ARHMM.construct_by_maximization(hs_list, xs_list)
         if verbose:
-            print('iter: {}, loglikeli {}'.format(i, loglikeli_sum))
+            print("iter: {}, loglikeli {}".format(i, loglikeli_sum))
         loglikeli_list_seq.append(loglikeli_list)
 
         if i < 1:

@@ -2,16 +2,13 @@ from setuptools import setup
 
 setup_requires = []
 
-install_requires = [
-    "numpy",
-    "scipy"
-]
+install_requires = ["numpy", "scipy"]
 
 setup(
-    name='arhmm',
-    version='0.0.1',
-    description='',
-    license='MIT',
+    name="arhmm",
+    version="0.0.1",
+    description="",
+    license="MIT",
     install_requires=install_requires,
-    package_data={'arhmm': ['py.typed']}
+    package_data={"arhmm": ["py.typed"]},
 )

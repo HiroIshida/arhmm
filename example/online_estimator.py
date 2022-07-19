@@ -1,17 +1,18 @@
 import argparse
-import numpy as np
-import matplotlib.pyplot as plt
 
-from arhmm.dataset import generate_swtiching_linear_seq
-from arhmm.propagator import Propagator
+import matplotlib.pyplot as plt
+import numpy as np
+
 from arhmm.core import ARHMM
+from arhmm.dataset import generate_swtiching_linear_seq
 from arhmm.phase_estimator import OnlinePhaseEstimator
+from arhmm.propagator import Propagator
 
 np.random.seed(0)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--visualize', action='store_true', help='visualize result')
+    parser.add_argument("--visualize", action="store_true", help="visualize result")
     args = parser.parse_args()
     visualize = args.visualize
 
@@ -31,7 +32,7 @@ if __name__ == '__main__':
         estimator.update(x)
         z_est_seq.append(np.argmax(estimator.z_est))
 
-    plt.plot(z_seq, c='b')
-    plt.plot(z_est_seq, 'r')
+    plt.plot(z_seq, c="b")
+    plt.plot(z_est_seq, "r")
     plt.plot(np.array(x_seq).flatten())
     plt.show()

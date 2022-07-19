@@ -1,14 +1,16 @@
-import pytest
 import numpy as np
+import pytest
+
+from arhmm.core import ARHMM, HiddenStates
+from arhmm.dataset import generate_distinct_randomwalks
+
 # np.random.seed(seed=0)
 
-from arhmm.dataset import generate_distinct_randomwalks
-from arhmm.core import ARHMM, HiddenStates
 
 np.random.seed(0)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def data_2d_randomwalk():
     return generate_distinct_randomwalks()
 

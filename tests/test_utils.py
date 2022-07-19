@@ -1,9 +1,11 @@
 import numpy as np
-from arhmm.propagator import Propagator
-from arhmm.utils import create_init_propagators_irreversible_case
-from arhmm.utils import create_irreversible_markov_matrix
-
 from test_propagator import create_sample_dataset
+
+from arhmm.propagator import Propagator
+from arhmm.utils import (
+    create_init_propagators_irreversible_case,
+    create_irreversible_markov_matrix,
+)
 
 
 def test_create_init_propagators_irreversible_case():
@@ -23,8 +25,5 @@ def test_create_init_propagators_irreversible_case():
 
 def test_create_markov_matrix():
     A = create_irreversible_markov_matrix(3, 0.99)
-    A_desired = np.array([
-        [0.99, 0.00, 0.00],
-        [0.01, 0.99, 0.00],
-        [0.00, 0.01, 1.00]])
+    A_desired = np.array([[0.99, 0.00, 0.00], [0.01, 0.99, 0.00], [0.00, 0.01, 1.00]])
     np.testing.assert_almost_equal(A, A_desired)

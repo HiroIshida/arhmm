@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-import numpy as np
 from typing import Optional
+
+import numpy as np
 
 from arhmm.core import ARHMM
 
@@ -12,7 +13,7 @@ class OnlinePhaseEstimator:
     x_current: Optional[np.ndarray]
 
     @classmethod
-    def construct(cls, arhmm: ARHMM) -> 'OnlinePhaseEstimator':
+    def construct(cls, arhmm: ARHMM) -> "OnlinePhaseEstimator":
         latent = np.zeros(arhmm.n_phase)
         latent[0] = 1.0
         return cls(arhmm, latent, None)

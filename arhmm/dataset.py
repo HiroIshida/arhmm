@@ -1,6 +1,7 @@
 import numpy as np
-from arhmm.propagator import Propagator
+
 from arhmm.core import ARHMM
+from arhmm.propagator import Propagator
 
 
 def generate_swtiching_linear_seq(n_time, mp: ARHMM):
