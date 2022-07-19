@@ -12,7 +12,7 @@ def test_create_init_propagators_irreversible_case():
     phi = np.array([[1.0, 0.3], [0.0, 1.0]])
     cov = np.eye(2) * 0.3
     drift = np.array([-0.01, 0.01])
-    prop = Propagator(phi, cov, drift)
+    prop = Propagator(2, phi, cov, drift)
     xs_list, _ = create_sample_dataset(prop, 300)
     props_fit = create_init_propagators_irreversible_case(xs_list, 2)
 

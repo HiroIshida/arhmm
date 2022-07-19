@@ -1,20 +1,16 @@
+from dataclasses import dataclass
 from typing import List, Optional
 
 import numpy as np
 import scipy.stats
 
 
+@dataclass
 class Propagator:
     _dim: int
     _phi: np.ndarray
     _cov: np.ndarray
     _drift: np.ndarray
-
-    def __init__(self, phi, cov, drift):
-        self._dim = phi.shape[0]
-        self._phi = phi
-        self._cov = cov
-        self._drift = drift
 
     def __call__(self, x: np.ndarray):
         mean = self._phi.dot(x) + self._drift
@@ -27,7 +23,9 @@ class Propagator:
         return prob
 
     @classmethod
-    def fit_parameter(cls, xs_list: List[np.ndarray], ws_list: Optional[List[np.ndarray]] = None):
+    def fit_parameter(
+        cls, xs_list: List[np.ndarray], ws_list: Optional[List[np.ndarray]] = None
+    ) -> Propagator:
         """ws_list: weigt of regression. In this context, ws_list is phase probability"""
 
         if ws_list is None:
@@ -65,7 +63,9 @@ class Propagator:
             Xp_hat = (phi_est.dot(X.T)).T + b_est
             diff = Xp - Xp_hat
             cov_est += diff.T.dot(np.diag(ws)).dot(diff) / w_sum
-        return cls(phi_est, cov_est, b_est)
+
+        dim = len(phi_est)
+        return cls(dim, phi_est, cov_est, b_est)
 
 
 def create_sample_dataset(prop: Propagator):

@@ -18,8 +18,8 @@ if __name__ == "__main__":
 
     # preparing real data
     noise_std = 0.2
-    prop1 = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.3]))
-    prop2 = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.3]))
+    prop1 = Propagator(2, np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.3]))
+    prop2 = Propagator(2, np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.3]))
     alpha = 0.1
     A_init = np.array([[1 - alpha, alpha], [alpha, 1 - alpha]])
     mp_real = ARHMM(A_init, props=[prop1, prop2])

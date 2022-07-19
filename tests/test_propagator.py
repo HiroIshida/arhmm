@@ -20,7 +20,7 @@ def test_propagator():
     phi = np.array([[1.0, 0.3], [0.0, 1.0]])
     cov = np.eye(2) * 0.3
     drift = np.array([-0.01, 0.01])
-    prop = Propagator(phi, cov, drift)
+    prop = Propagator(2, phi, cov, drift)
     x_seq_list, ws_list = create_sample_dataset(prop, 300)
 
     prop_fit = Propagator.fit_parameter(x_seq_list, ws_list)

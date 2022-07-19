@@ -16,8 +16,8 @@ if __name__ == "__main__":
 
     # preparing real data
     noise_std = 3e-1
-    prop1 = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.4]))
-    prop2 = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.4]))
+    prop1 = Propagator(1, np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.4]))
+    prop2 = Propagator(1, np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.4]))
     A_init = np.array([[0.85, 0.15], [0.15, 0.85]])
     mp_real = ARHMM(A_init, props=[prop1, prop2])
 
@@ -29,8 +29,8 @@ if __name__ == "__main__":
         zs_list.append(zs)
 
     # prepare initial estimate of model parameter
-    prop1_est = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.3]))
-    prop2_est = Propagator(np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.2]))
+    prop1_est = Propagator(1, np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([0.3]))
+    prop2_est = Propagator(1, np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.2]))
     A_init_est = np.array([[0.9, 0.1], [0.1, 0.9]])
     model_init = ARHMM(A_init_est, props=[prop1_est, prop2_est])
     model, hs_list, loglikeli_list = train_arhmm(model_init, xs_list, verbose=True)
