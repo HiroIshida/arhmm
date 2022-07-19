@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup_requires = []
 
-install_requires = ["numpy", "scipy"]
+install_requires = ["numpy", "scipy", 'dataclasses; python_version < "3.7"']
 
 setup(
     name="arhmm",

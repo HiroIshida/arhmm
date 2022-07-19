@@ -70,7 +70,7 @@ class Propagator:
 
     def dumps(self) -> str:
         d = {}
-        for k in self.__dataclass_fields__.keys():
+        for k in self.__dataclass_fields__.keys():  # type: ignore
             v = self.__dict__[k]
             if isinstance(v, np.ndarray):
                 d[k] = v.tolist()
@@ -82,7 +82,7 @@ class Propagator:
     def loads(cls, json_data: str) -> "Propagator":
         d = json.loads(json_data)
         kwargs = {}
-        for k in cls.__dataclass_fields__.keys():
+        for k in cls.__dataclass_fields__.keys():  # type: ignore
             v = d[k]
             if isinstance(v, list):
                 v = np.array(v, dtype=np.float64)
