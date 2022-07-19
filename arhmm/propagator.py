@@ -73,11 +73,10 @@ class Propagator:
         for k in self.__dataclass_fields__.keys():
             v = self.__dict__[k]
             if isinstance(v, np.ndarray):
-                # serialize numpy as a dict
-                d[k] = {"dtype": str(v.dtype), "val": v.tolist()}
+                d[k] = v.tolist()
             else:
                 d[k] = v
-        return json.dumps(d)
+        return json.dumps(d, indent=2)
 
     @classmethod
     def loads(cls, json_data: str) -> "Propagator":
@@ -85,8 +84,8 @@ class Propagator:
         kwargs = {}
         for k in cls.__dataclass_fields__.keys():
             v = d[k]
-            if isinstance(v, dict):
-                v = np.array(v["val"], dtype=np.dtype(v["dtype"]))
+            if isinstance(v, list):
+                v = np.array(v, dtype=np.float64)
             kwargs[k] = v
         return cls(**kwargs)
 

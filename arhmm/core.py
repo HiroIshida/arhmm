@@ -163,7 +163,7 @@ class ARHMM:
         d["props"] = [prop.dumps() for prop in self.props]
         assert self.pmf_z1 is not None
         d["pmf_z1"] = self.pmf_z1.tolist()
-        return json.dumps(d)
+        return json.dumps(d, indent=2)
 
     @classmethod
     def loads(cls, jsonda_data: str) -> "ARHMM":
