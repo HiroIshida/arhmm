@@ -1,3 +1,4 @@
+import json
 import math
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
@@ -155,6 +156,37 @@ class ARHMM:
                     )
                 hs.betas[t][j] = s
                 hs.betas[t][j] /= hs.c_seq[t + 2]
+
+    def dumps(self) -> str:
+        d = {}
+        d["A"] = self.A.tolist()
+        d["props"] = [prop.dumps() for prop in self.props]
+        assert self.pmf_z1 is not None
+        d["pmf_z1"] = self.pmf_z1.tolist()
+        return json.dumps(d)
+
+    @classmethod
+    def loads(cls, jsonda_data: str) -> "ARHMM":
+        d = json.loads(jsonda_data)
+        kwargs = {}
+        kwargs["A"] = np.array(d["A"], dtype=np.float64)
+        kwargs["props"] = [Propagator.loads(jd) for jd in d["props"]]
+        kwargs["pmf_z1"] = np.array(d["pmf_z1"], dtype=np.float64)
+        return cls(**kwargs)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, ARHMM):
+            return NotImplemented
+        assert type(self) == type(other)
+
+        if not np.allclose(self.A, other.A, atol=1e-6):
+            return False
+        if not np.allclose(self.pmf_z1, other.pmf_z1, atol=1e-6):
+            return False
+        for prop_self, prop_other in zip(self.props, other.props):
+            if prop_self != prop_other:
+                return False
+        return True
 
 
 def train_arhmm(

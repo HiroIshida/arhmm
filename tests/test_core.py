@@ -3,6 +3,10 @@ import pytest
 
 from arhmm.core import ARHMM, HiddenStates
 from arhmm.dataset import generate_distinct_randomwalks
+from arhmm.utils import (
+    create_init_propagators_irreversible_case,
+    create_irreversible_markov_matrix,
+)
 
 # np.random.seed(seed=0)
 
@@ -13,6 +17,15 @@ np.random.seed(0)
 @pytest.fixture(scope="session")
 def data_2d_randomwalk():
     return generate_distinct_randomwalks()
+
+
+def test_arhmm_serialization(data_2d_randomwalk):
+    xs_list, zs_list, model_real, _ = data_2d_randomwalk
+
+    props_init = create_init_propagators_irreversible_case(xs_list, 2)
+    A_init = create_irreversible_markov_matrix(2, 0.98)
+    arhmm = ARHMM(A_init, props_init, None)
+    assert ARHMM.loads(arhmm.dumps()) == arhmm
 
 
 def test_expectation_step(data_2d_randomwalk):
