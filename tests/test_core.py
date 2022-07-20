@@ -1,3 +1,6 @@
+import tempfile
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -26,6 +29,11 @@ def test_arhmm_serialization(data_2d_randomwalk):
     A_init = create_irreversible_markov_matrix(2, 0.98)
     arhmm = ARHMM(A_init, props_init)
     assert ARHMM.loads(arhmm.dumps()) == arhmm
+
+    with tempfile.TemporaryDirectory() as dname:
+        path = Path(dname).expanduser() / "arhmm.json"
+        arhmm.dump(path)
+        assert ARHMM.load(path) == arhmm
 
 
 def test_expectation_step(data_2d_randomwalk):
