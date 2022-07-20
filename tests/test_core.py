@@ -24,7 +24,7 @@ def test_arhmm_serialization(data_2d_randomwalk):
 
     props_init = create_init_propagators_irreversible_case(xs_list, 2)
     A_init = create_irreversible_markov_matrix(2, 0.98)
-    arhmm = ARHMM(A_init, props_init, None)
+    arhmm = ARHMM(A_init, props_init)
     assert ARHMM.loads(arhmm.dumps()) == arhmm
 
 

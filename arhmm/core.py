@@ -2,7 +2,7 @@ import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -46,15 +46,15 @@ class HiddenStates:
 class ARHMM:
     A: np.ndarray
     props: List[Propagator]
-    pmf_z1: Optional[np.ndarray] = None
 
     def __post_init__(self):
         assert self.A.shape[0] == len(self.props)
 
-        if self.pmf_z1 is None:
-            pmf_z1 = np.zeros(self.n_phase)
-            pmf_z1[0] = 1.0  # because initial phase must be phase 1
-            self.pmf_z1 = pmf_z1
+    @property
+    def pmf_z1(self) -> np.ndarray:
+        arr = np.zeros(self.n_phase)
+        arr[0] = 1.0
+        return arr
 
     @property
     def n_phase(self):
@@ -66,9 +66,6 @@ class ARHMM:
     ) -> "ARHMM":
         assert len(hs_list) == len(xs_list)
         n_phase = hs_list[0].n_phase
-
-        # update pmf_z1
-        pmf_z1 = np.sum([hs.z_ests[0] for hs in hs_list]) / len(hs_list)
 
         # update A
         A = np.zeros((n_phase, n_phase))
@@ -88,7 +85,7 @@ class ARHMM:
         for i in range(n_phase):
             ws_list = [np.array([z_est[i] for z_est in hs.z_ests]) for hs in hs_list]
             props.append(Propagator.fit_parameter(xs_list, ws_list))
-        return cls(A, props, pmf_z1)
+        return cls(A, props)
 
     def expect_hs_list(self, xs_list: List[np.ndarray]) -> Tuple[List[HiddenStates], List[float]]:
         hs_list = []
@@ -162,8 +159,6 @@ class ARHMM:
         d = {}
         d["A"] = self.A.tolist()
         d["props"] = [prop.to_dict() for prop in self.props]
-        assert self.pmf_z1 is not None
-        d["pmf_z1"] = self.pmf_z1.tolist()
         return json.dumps(d, indent=2)
 
     def dump(self, path: Path) -> None:
@@ -176,7 +171,6 @@ class ARHMM:
         kwargs: Dict[str, Any] = {}
         kwargs["A"] = np.array(d["A"], dtype=np.float64)
         kwargs["props"] = [Propagator.from_dict(dd) for dd in d["props"]]
-        kwargs["pmf_z1"] = np.array(d["pmf_z1"], dtype=np.float64)
         return cls(**kwargs)
 
     @classmethod
@@ -191,8 +185,6 @@ class ARHMM:
         assert type(self) == type(other)
 
         if not np.allclose(self.A, other.A, atol=1e-6):
-            return False
-        if not np.allclose(self.pmf_z1, other.pmf_z1, atol=1e-6):  # type: ignore
             return False
         for prop_self, prop_other in zip(self.props, other.props):
             if prop_self != prop_other:
