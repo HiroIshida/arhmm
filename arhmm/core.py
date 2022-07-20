@@ -1,6 +1,7 @@
 import json
 import math
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -165,6 +166,10 @@ class ARHMM:
         d["pmf_z1"] = self.pmf_z1.tolist()
         return json.dumps(d, indent=2)
 
+    def dump(self, path: Path) -> None:
+        with path.open(mode="w") as f:
+            f.write(self.dumps())
+
     @classmethod
     def loads(cls, jsonda_data: str) -> "ARHMM":
         d = json.loads(jsonda_data)
@@ -173,6 +178,12 @@ class ARHMM:
         kwargs["props"] = [Propagator.from_dict(dd) for dd in d["props"]]
         kwargs["pmf_z1"] = np.array(d["pmf_z1"], dtype=np.float64)
         return cls(**kwargs)
+
+    @classmethod
+    def load(cls, path: Path) -> "ARHMM":
+        with path.open(mode="r") as f:
+            json_data = f.read()
+        return cls.loads(json_data)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, ARHMM):
