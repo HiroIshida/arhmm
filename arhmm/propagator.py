@@ -1,6 +1,5 @@
-import json
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 import scipy.stats
@@ -68,7 +67,7 @@ class Propagator:
         dim = len(phi_est)
         return cls(dim, phi_est, cov_est, b_est)
 
-    def dumps(self) -> str:
+    def to_dict(self) -> Dict:
         d = {}
         for k in self.__dataclass_fields__.keys():  # type: ignore
             v = self.__dict__[k]
@@ -76,11 +75,10 @@ class Propagator:
                 d[k] = v.tolist()
             else:
                 d[k] = v
-        return json.dumps(d, indent=2)
+        return d
 
     @classmethod
-    def loads(cls, json_data: str) -> "Propagator":
-        d = json.loads(json_data)
+    def from_dict(cls, d: Dict) -> "Propagator":
         kwargs = {}
         for k in cls.__dataclass_fields__.keys():  # type: ignore
             v = d[k]

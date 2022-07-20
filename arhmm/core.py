@@ -160,7 +160,7 @@ class ARHMM:
     def dumps(self) -> str:
         d = {}
         d["A"] = self.A.tolist()
-        d["props"] = [prop.dumps() for prop in self.props]
+        d["props"] = [prop.to_dict() for prop in self.props]
         assert self.pmf_z1 is not None
         d["pmf_z1"] = self.pmf_z1.tolist()
         return json.dumps(d, indent=2)
@@ -170,7 +170,7 @@ class ARHMM:
         d = json.loads(jsonda_data)
         kwargs: Dict[str, Any] = {}
         kwargs["A"] = np.array(d["A"], dtype=np.float64)
-        kwargs["props"] = [Propagator.loads(jd) for jd in d["props"]]
+        kwargs["props"] = [Propagator.from_dict(dd) for dd in d["props"]]
         kwargs["pmf_z1"] = np.array(d["pmf_z1"], dtype=np.float64)
         return cls(**kwargs)
 

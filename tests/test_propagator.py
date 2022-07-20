@@ -29,4 +29,4 @@ def test_propagator():
     np.testing.assert_almost_equal(prop_fit._cov, cov, decimal=2)
 
     # test serialize / deserialize
-    assert Propagator.loads(prop.dumps()) == prop
+    assert Propagator.from_dict(prop.to_dict()) == prop
