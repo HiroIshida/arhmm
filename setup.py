@@ -6,7 +6,7 @@ install_requires = ["numpy", "scipy", 'dataclasses; python_version < "3.7"']
 
 setup(
     name="arhmm",
-    version="0.0.4",
+    version="0.0.5",
     description="",
     author="Hirokazu Ishida",
     author_email="h-ishida@jsk.imi.i.u-tokyo.ac.jp",
