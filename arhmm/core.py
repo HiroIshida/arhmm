@@ -1,8 +1,9 @@
+import copy
 import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -192,23 +193,39 @@ class ARHMM:
         return True
 
 
+@dataclass
+class TrainResult:
+    arhmm: ARHMM
+    hs_list: List[HiddenStates]
+    loglikeli_list_seq: List[List[float]]
+
+    @property
+    def logilikeli_sum_seq(self) -> List[float]:
+        return [sum(lst) for lst in self.loglikeli_list_seq]
+
+
 def train_arhmm(
     arhmm_init: ARHMM, xs_list: List[np.ndarray], f_tol=1e-3, n_max_iter=10, verbose=False
-) -> Tuple[ARHMM, List[HiddenStates], List[float]]:
+) -> TrainResult:
     arhmm = arhmm_init
+
     loglikeli_list_seq = []
+    result: Optional[TrainResult] = None
     for i in range(n_max_iter):
-        print(i)
         hs_list, loglikeli_list = arhmm.expect_hs_list(xs_list)
         loglikeli_sum = sum(loglikeli_list)
         arhmm = ARHMM.construct_by_maximization(hs_list, xs_list)
         if verbose:
             print("iter: {}, loglikeli {}".format(i, loglikeli_sum))
-        loglikeli_list_seq.append(loglikeli_list)
+        loglikeli_list_seq.append(copy.deepcopy(loglikeli_list))
 
-        if i < 1:
-            continue
-        if (sum(loglikeli_list_seq[-1]) - sum(loglikeli_list_seq[-2])) < f_tol:
-            break
-
-    return arhmm, hs_list, loglikeli_list_seq  # type: ignore
+        if i > 0:
+            is_converged = (sum(loglikeli_list_seq[-1]) - sum(loglikeli_list_seq[-2])) < f_tol
+            if is_converged:
+                assert result is not None
+                return result
+        else:
+            result = TrainResult(
+                arhmm=arhmm, hs_list=hs_list, loglikeli_list_seq=loglikeli_list_seq
+            )
+    assert False  # for mypy

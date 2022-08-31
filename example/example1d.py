@@ -33,14 +33,13 @@ if __name__ == "__main__":
     prop2_est = Propagator(1, np.ones((1, 1)), np.ones((1, 1)) * noise_std**2, np.array([-0.2]))
     A_init_est = np.array([[0.9, 0.1], [0.1, 0.9]])
     model_init = ARHMM(A_init_est, props=[prop1_est, prop2_est])
-    model, hs_list, loglikeli_list = train_arhmm(model_init, xs_list, verbose=True)
-    print(loglikeli_list)
+    result = train_arhmm(model_init, xs_list, verbose=True)
 
     if visualize:
         import matplotlib.pyplot as plt
 
         index = 0
-        hs, xs = hs_list[index], xs_list[index][:-1]
+        hs, xs = result.hs_list[index], xs_list[index][:-1]
         horizons = np.arange(len(hs.z_ests))
         phases = np.array([np.argmax(z_est) for z_est in hs.z_ests])
         fig, ax = plt.subplots()
